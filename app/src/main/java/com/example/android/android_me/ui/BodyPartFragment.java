@@ -1,21 +1,22 @@
 /*
-* Copyright (C) 2017 The Android Open Source Project
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-*  	http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-*/
+ * Copyright (C) 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *  	http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.example.android.android_me.ui;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -25,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import com.example.android.android_me.R;
+import com.example.android.android_me.data.BodyPartEnum;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +43,10 @@ public class BodyPartFragment extends Fragment {
     // Variables to store a list of image resources and the index of the image that this fragment displays
     private List<Integer> mImageIds;
     private int mListIndex;
+    private BodyPartEnum mBodyPartEnum;
+
+    // Define a new interface OnImageClickListener that triggers a callback in the host activity
+    OnImageClickListener mCallback;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the fragment
@@ -55,7 +61,7 @@ public class BodyPartFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
         // Load the saved state (the list of images and list index) if there is one
-        if(savedInstanceState != null) {
+        if (savedInstanceState != null) {
             mImageIds = savedInstanceState.getIntegerArrayList(IMAGE_ID_LIST);
             mListIndex = savedInstanceState.getInt(LIST_INDEX);
         }
@@ -68,7 +74,7 @@ public class BodyPartFragment extends Fragment {
 
         // If a list of image ids exists, set the image resource to the correct item in that list
         // Otherwise, create a Log statement that indicates that the list was not found
-        if(mImageIds != null){
+        if (mImageIds != null) {
             // Set the image resource to the list item at the stored index
             imageView.setImageResource(mImageIds.get(mListIndex));
 
@@ -77,7 +83,7 @@ public class BodyPartFragment extends Fragment {
                 @Override
                 public void onClick(View view) {
                     // Increment position as long as the index remains <= the size of the image ids list
-                    if(mListIndex < mImageIds.size()-1) {
+                    if (mListIndex < mImageIds.size() - 1) {
                         mListIndex++;
                     } else {
                         // The end of list has been reached, so return to beginning index
@@ -85,6 +91,8 @@ public class BodyPartFragment extends Fragment {
                     }
                     // Set the image resource to the new list item
                     imageView.setImageResource(mImageIds.get(mListIndex));
+
+                    mCallback.onImageSelected(mBodyPartEnum, mListIndex);
                 }
             });
 
@@ -96,6 +104,20 @@ public class BodyPartFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+
+        // This makes sure that the host activity has implemented the callback interface
+        // If not, it throws an exception
+        try {
+            mCallback = (OnImageClickListener) context;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(context.toString()
+                    + " must implement OnImageClickListener");
+        }
+    }
+
     // Setter methods for keeping track of the list images this fragment can display and which image
     // in the list is currently being displayed
 
@@ -105,6 +127,10 @@ public class BodyPartFragment extends Fragment {
 
     public void setListIndex(int index) {
         mListIndex = index;
+    }
+
+    public void setBodyPartEnum(BodyPartEnum bodyPartEnum) {
+        mBodyPartEnum = bodyPartEnum;
     }
 
     /**
